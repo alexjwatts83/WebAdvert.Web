@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -19,6 +20,20 @@ namespace WebAdvert.Web
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCognitoIdentity();
+
+            services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = "/Accounts/Login";
+                options.ReturnUrlParameter = "RedirectUrl";
+                options.LogoutPath = "/Accounts/Logout";
+                options.AccessDeniedPath = "/Accounts/Index";
+                options.ExpireTimeSpan = new TimeSpan(0, 15, 0);
+            });
+
+            //services.ConfigureApplicationCookie(options =>
+            //{
+            //    options.LoginPath = "/Accounts/Login";
+            //});
             services.AddControllersWithViews();
         }
 

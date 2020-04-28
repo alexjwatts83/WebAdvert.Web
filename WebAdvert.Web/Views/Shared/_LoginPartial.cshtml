@@ -1,0 +1,26 @@
+﻿@using Microsoft.AspNetCore.Identity
+@using Amazon.Extensions.CognitoAuthentication
+
+@inject SignInManager<CognitoUser> SignInManager
+@inject UserManager<CognitoUser> UserManager
+
+@if (SignInManager.IsSignedIn(User))
+{
+    <form method="post" id="logoutForm" class="navbar-right" asp-controller="Accounts" asp-action="Logout">
+        <ul class="nav navbar-nav navbar-right">
+            <li class="nav-item">
+                <a class="nav-link text-dark" asp-controller="Home" asp-action="Index" title="Manage">Hello @UserManager.GetUserName(User)!</a>
+            </li>
+            <li class="nav-item">
+                <button type="submit" class="btn btn-link nav-link navbar-btn navbar-link">Logout</button>
+            </li>
+        </ul>
+    </form>
+}
+else
+{
+    <ul class="nav navbar-nav navbar-right">
+        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Accounts" asp-action="Signup">Signup</a></li>
+        <li class="nav-item"><a class="nav-link text-dark" asp-controller="Accounts" asp-action="Login">Login</a></li>
+    </ul>
+}

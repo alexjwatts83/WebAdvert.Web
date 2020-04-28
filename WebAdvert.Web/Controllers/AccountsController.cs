@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Amazon.AspNetCore.Identity.Cognito;
 using Amazon.Extensions.CognitoAuthentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -10,6 +11,7 @@ using WebAdvert.Web.Models;
 
 namespace WebAdvert.Web.Controllers
 {
+    [AllowAnonymous]
     public class AccountsController : Controller
     {
         private readonly SignInManager<CognitoUser> _signInManager;
@@ -56,7 +58,7 @@ namespace WebAdvert.Web.Controllers
                 }
 
                 // add attribute name to user as thats we I specified in Cognito
-                user.Attributes.Add(CognitoAttribute.Name.AttributeName, model.Password);
+                user.Attributes.Add(CognitoAttribute.Name.AttributeName, model.Email);
 
                 // create user
                 var createdtUser = await _userManager.CreateAsync(user, model.Password);
@@ -115,6 +117,57 @@ namespace WebAdvert.Web.Controllers
             }
 
             return RedirectToAction("Index", "Home");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Login()
+        {
+            var model = new LoginModel();
+            return View(model);
+        }
+
+        [HttpPost]
+        [ActionName("Login")]
+        public async Task<IActionResult> Login_Post(LoginModel model)
+        {
+            if (ModelState.IsValid)
+            {
+                var result = await _signInManager
+                    .PasswordSignInAsync(model.Email, model.Password, model.RememberMe, false);
+
+                if (result.Succeeded)
+                {
+                    //var user = await _userManager.FindByEmailAsync(model.Email);
+                    //user.Attributes[CognitoAttribute.Name.AttributeName] = model.Email;
+                    //var updateresult = await _userManager.UpdateAsync(user);
+
+                    return RedirectToAction("Index", "Home");
+                } else
+                {
+                    ModelState.AddModelError("LoginError", "Error occured whilst loggin in user");
+                }
+            }
+
+            return View("Login", model);
+        }
+
+        [HttpGet]
+        [Route("Logout")]
+        public async Task<IActionResult> Logout()
+        {
+            return View();
+        }
+
+
+        [HttpPost]
+        [Route("Logout")]
+        public async Task<IActionResult> LogoutPost()
+        {
+            await _signInManager.SignOutAsync();
+
+            _logger.LogInformation("User logged out.");
+
+            return View("Logout");
         }
     }
 }

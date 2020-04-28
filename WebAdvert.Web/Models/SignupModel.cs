@@ -6,7 +6,7 @@ namespace WebAdvert.Web.Models
     {
         [Required]
         [EmailAddress]
-        [Display(Name = "Emaill")]
+        [Display(Name = "Email")]
         public string Email { get; set; }
 
         [Required]
