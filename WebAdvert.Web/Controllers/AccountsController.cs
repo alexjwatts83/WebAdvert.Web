@@ -15,7 +15,7 @@ namespace WebAdvert.Web.Controllers
     public class AccountsController : Controller
     {
         private readonly SignInManager<CognitoUser> _signInManager;
-        private readonly UserManager<CognitoUser> _userManager;
+        private readonly CognitoUserManager<CognitoUser> _userManager;
         private readonly CognitoUserPool _userPool;
         private readonly ILogger<AccountsController> _logger;
 
@@ -27,7 +27,7 @@ namespace WebAdvert.Web.Controllers
             )
         {
             _signInManager = signInManager;
-            _userManager = userManager;
+            _userManager = userManager as CognitoUserManager<CognitoUser>;
             _userPool = userPool;
             _logger = logger;
         }
@@ -40,7 +40,7 @@ namespace WebAdvert.Web.Controllers
                 Email = "test@test.com"
             };
 
-            return View(model);
+            return await Task.FromResult(View(model));
         }
 
         [HttpPost]
@@ -77,7 +77,7 @@ namespace WebAdvert.Web.Controllers
             }
 
             // If we got this far, something failed, redisplay form
-            return View();
+            return await Task.FromResult(View());
         }
 
         [HttpGet]
@@ -85,7 +85,7 @@ namespace WebAdvert.Web.Controllers
         {
             var model = new ConfirmationModel();
 
-            return View(model);
+            return await Task.FromResult(View(model));
         }
 
         [HttpPost]
@@ -94,7 +94,7 @@ namespace WebAdvert.Web.Controllers
             if (!ModelState.IsValid)
             {
                 // If we got this far, something failed, redisplay form
-                return View();
+                return await Task.FromResult(View());
             }
 
             var user = await _userManager.FindByEmailAsync(model.Email);
@@ -102,10 +102,10 @@ namespace WebAdvert.Web.Controllers
             if (user == null)
             {
                 ModelState.AddModelError("NotFound", "User with the email addres provided was not found");
-                return View(model);
+                return await Task.FromResult(View(model));
             }
 
-            var confirmSignup = await (_userManager as CognitoUserManager<CognitoUser>).ConfirmSignUpAsync(user, model.Code, true);
+            var confirmSignup = await _userManager.ConfirmSignUpAsync(user, model.Code, true);
 
             if (!confirmSignup.Succeeded)
             {
@@ -113,7 +113,7 @@ namespace WebAdvert.Web.Controllers
                 {
                     ModelState.AddModelError(error.Code, error.Description);
                 }
-                return View(model);
+                return await Task.FromResult(View(model));
             }
 
             return RedirectToAction("Index", "Home");
@@ -123,7 +123,7 @@ namespace WebAdvert.Web.Controllers
         public async Task<IActionResult> Login()
         {
             var model = new LoginModel();
-            return View(model);
+            return await Task.FromResult(View(model));
         }
 
         [HttpPost]
@@ -144,18 +144,17 @@ namespace WebAdvert.Web.Controllers
                     return RedirectToAction("Index", "Home");
                 } else
                 {
-                    ModelState.AddModelError("LoginError", "Error occured whilst loggin in user");
+                    ModelState.AddModelError("LoginError", "Error occured whilst logging in user");
                 }
             }
-
-            return View("Login", model);
+            return await Task.FromResult(View("Login", model));
         }
 
         [HttpGet]
         [Route("Logout")]
         public async Task<IActionResult> Logout()
         {
-            return View();
+            return await Task.FromResult(View());
         }
 
 
@@ -167,7 +166,49 @@ namespace WebAdvert.Web.Controllers
 
             _logger.LogInformation("User logged out.");
 
-            return View("Logout");
+            return await Task.FromResult(View("Logout"));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ForgotPassword()
+        {
+            return await Task.FromResult(View(new ForgotPasswordModel()));
+        }
+
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return await Task.FromResult(View(model));
+            }
+
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            
+            if (user == null)
+            {
+                ModelState.AddModelError("ForgotPasswordSent", "Error occured");
+                return await Task.FromResult(View(model));
+            }
+
+            await user.ForgotPasswordAsync();
+
+            var sentModel = new ForgotPasswordSentModel()
+            {
+                Message = $"Confirmation email sent to {model.Email}"
+            };
+
+            return await Task.FromResult(View("ForgotPasswordSent", sentModel));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ForgotPasswordSent(ForgotPasswordSentModel model)
+        {
+            if (string.IsNullOrEmpty(model.Message))
+            {
+                return await Task.FromResult(View("ForgotPassword"));
+            }
+
+            return await Task.FromResult(View(model));
         }
     }
 }
