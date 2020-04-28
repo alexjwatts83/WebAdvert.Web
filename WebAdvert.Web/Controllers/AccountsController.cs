@@ -175,6 +175,7 @@ namespace WebAdvert.Web.Controllers
             return await Task.FromResult(View(new ForgotPasswordModel()));
         }
 
+        [HttpPost]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordModel model)
         {
             if (!ModelState.IsValid)
@@ -192,23 +193,34 @@ namespace WebAdvert.Web.Controllers
 
             await user.ForgotPasswordAsync();
 
-            var sentModel = new ForgotPasswordSentModel()
-            {
-                Message = $"Confirmation email sent to {model.Email}"
-            };
-
-            return await Task.FromResult(View("ForgotPasswordSent", sentModel));
+            return await Task.FromResult(View("ResetPassword"));
         }
 
         [HttpGet]
-        public async Task<IActionResult> ForgotPasswordSent(ForgotPasswordSentModel model)
+        public async Task<IActionResult> ResetPassword()
         {
-            if (string.IsNullOrEmpty(model.Message))
+            return await Task.FromResult(View(new ResetPasswordModel()));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(ResetPasswordModel model)
+        {
+            if (!ModelState.IsValid)
             {
-                return await Task.FromResult(View("ForgotPassword"));
+                return await Task.FromResult(View(model));
             }
 
-            return await Task.FromResult(View(model));
+            var user = await _userManager.FindByEmailAsync(model.Email);
+
+            if (user == null)
+            {
+                ModelState.AddModelError("ResetPassword", "Error occured");
+                return await Task.FromResult(View(model));
+            }
+
+            await user.ConfirmForgotPasswordAsync(model.ResetToken, model.NewPassword);
+
+            return RedirectToAction("Index", "Home");
         }
     }
 }
