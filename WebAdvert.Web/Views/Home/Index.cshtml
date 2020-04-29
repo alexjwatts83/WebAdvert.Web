@@ -1,8 +1,23 @@
-﻿@{
+﻿@model WebAdvert.Web.Models.Home.HomeViewModel
+@{
     ViewData["Title"] = "Home Page";
 }
 
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    @if (Model.DoesImageBucketExists)
+    {
+        <div class="alert alert-success" role="alert">
+            <span class="sr-only">Error:</span>
+            ImageBucket "<strong>@Model.ImageBucket</strong>" does exists.
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-danger" role="alert">
+            <span class="sr-only">Error:</span>
+            ImageBucket "<strong>@Model.ImageBucket</strong>" does not exists!
+        </div>
+    }
 </div>
