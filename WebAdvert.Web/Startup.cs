@@ -1,6 +1,7 @@
 using System;
 using System.Net;
 using System.Net.Http;
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -40,6 +41,8 @@ namespace WebAdvert.Web
             //{
             //    options.LoginPath = "/Accounts/Login";
             //});
+
+            services.AddAutoMapper(typeof(Startup));
 
             services.AddTransient<IFileUploader, S3FileUploader>();
 
