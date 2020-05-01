@@ -14,13 +14,13 @@ namespace WebAdvert.Web.ServiceClients
 {
     public class AdvertApiClient : IAdvertApiClient
     {
-        private readonly IConfiguration _configuration;
+        //private readonly IConfiguration _configuration;
         private readonly HttpClient _client;
         private readonly string _baseAddress;
         private readonly IMapper _mapper;
         public AdvertApiClient(IConfiguration configuration, HttpClient client, IMapper mapper)
         {
-            _configuration = configuration;
+            //_configuration = configuration;
             _client = client;
             _mapper = mapper;
 

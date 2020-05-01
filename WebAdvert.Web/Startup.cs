@@ -50,6 +50,10 @@ namespace WebAdvert.Web
                 .AddPolicyHandler(GetRetryPolicy())
                 .AddPolicyHandler(GetCircuitBreakerPatternPolicy());
 
+            services.AddHttpClient<ISearchApiClient, SearchApiClient>()
+                .AddPolicyHandler(GetRetryPolicy())
+                .AddPolicyHandler(GetCircuitBreakerPatternPolicy());
+
             services.AddControllersWithViews();
         }
 
